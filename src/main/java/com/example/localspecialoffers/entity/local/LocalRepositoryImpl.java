@@ -1,5 +1,7 @@
 package com.example.localspecialoffers.entity.local;
 
+import com.example.localspecialoffers.entity.specialOffer.SpecialOffer;
+import com.example.localspecialoffers.entity.specialOffer.SpecialOfferService;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -9,7 +11,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -17,11 +18,18 @@ import java.util.List;
 public class LocalRepositoryImpl implements LocalRepository {
 
     private final JdbcTemplate jdbc;
+    private final SpecialOfferService specialOfferService;
 
     @Override
     public List<Local> findAll() {
-        return jdbc.query("select * from Local_Entity",
+        //Locals
+        List<Local> locals = jdbc.query("select * from Local_Entity",
                 (rs, rowNum) -> new Local(Long.valueOf(rs.getString("id")), rs.getString("name")));
+        //Special offers
+        for (Local local : locals){
+            local.setSpecialOffers(specialOfferService.getSpecialOffersForLocal(local));
+        }
+        return locals;
     }
 
 
@@ -29,11 +37,12 @@ public class LocalRepositoryImpl implements LocalRepository {
     public Local save(Local local) {
         Long id = saveLocal(local);
         local.setId(id);
+        for (SpecialOffer specialOffer : local.getSpecialOffers())
+            specialOfferService.save(id, specialOffer);
         return local;
     }
 
     private Long saveLocal(Local local){
-
         PreparedStatementCreatorFactory preparedStatementCreatorFactory = new PreparedStatementCreatorFactory(
                 "insert into Local_Entity (name) values (?)",
                 Types.VARCHAR);

@@ -1,7 +1,6 @@
 package com.example.localspecialoffers.entity.local;
 
-import com.example.localspecialoffers.entity.SpecialOffer;
-import lombok.AllArgsConstructor;
+import com.example.localspecialoffers.entity.specialOffer.SpecialOffer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
